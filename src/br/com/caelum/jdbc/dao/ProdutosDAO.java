@@ -1,5 +1,6 @@
 package br.com.caelum.jdbc.dao;
 
+import br.com.caelum.jdbc.modelo.Categoria;
 import br.com.caelum.jdbc.modelo.Produto;
 
 import java.sql.*;
@@ -42,19 +43,38 @@ public class ProdutosDAO {
         try (PreparedStatement stmt = connection.prepareStatement(sql)){
             stmt.execute();
 
-            try(ResultSet resultSet = stmt.getResultSet()) {
-                while (resultSet.next()){
-                    int id = resultSet.getInt("id");
-                    String nome = resultSet.getString("nome");
-                    String descricao = resultSet.getString("descricao");
-                    Produto produto = new Produto(nome, descricao);
-                    produto.setId(id);
-                    produtos.add(produto);
-                }
-
-            }
+            trasnsformaResultadosEmProdutos(produtos, stmt);
 
         }
         return produtos;
+    }
+
+    public List<Produto> busca(Categoria categoria) throws SQLException {
+        System.out.println("Executando uma query");
+        List<Produto> produtos = new ArrayList<>();
+        String sql = "select  * from Produto where categoria_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)){
+            stmt.setInt(1, categoria.getId());
+            stmt.execute();
+
+            trasnsformaResultadosEmProdutos(produtos, stmt);
+
+        }
+        return produtos;
+    }
+
+    private void trasnsformaResultadosEmProdutos(List<Produto> produtos, PreparedStatement stmt) throws SQLException {
+        try (ResultSet resultSet = stmt.getResultSet()) {
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String nome = resultSet.getString("nome");
+                String descricao = resultSet.getString("descricao");
+                Produto produto = new Produto(nome, descricao);
+                produto.setId(id);
+                produtos.add(produto);
+            }
+
+        }
     }
 }
